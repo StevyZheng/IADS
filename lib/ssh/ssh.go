@@ -95,11 +95,11 @@ func (e *Ssh) ExecCommandList(cmdList arraylist.List) (arraylist.List, arraylist
 }
 
 func (e *Ssh) CloseSession() {
-	e.session.Close()
+	_ = e.session.Close()
 }
 
 func (e *Ssh) CloseSftp() {
-	e.sftpClient.Close()
+	_ = e.sftpClient.Close()
 }
 
 func (e *Ssh) SetPort(port int) {
@@ -184,7 +184,7 @@ func (e *Ssh) UploadFile(localFile string, remoteFile string) error {
 				return err
 			}
 		}
-		/*if err != nil{ log.Fatal(err)}
+		/*if err != nil{ logging.Fatal(err)}
 		if n != size{}
 		buf := make([]byte, 1e9)
 		for {

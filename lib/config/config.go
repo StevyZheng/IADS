@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/olebedev/config"
 	"gopkg.in/ini.v1"
+	. "iads/lib/logging"
 	"iads/lib/stringx"
 	"io/ioutil"
 	"log"
@@ -31,9 +32,13 @@ func (e *CommonConfigParser) Read() (int, error) {
 	e.buffer = make(map[string]string)
 	file, err := os.Open(e.filePath)
 	if err != nil {
-		log.Fatal(err)
+		FatalPrintln(err.Error())
 	}
-	defer file.Close()
+	defer func() {
+		if nil != file {
+			file.Close()
+		}
+	}()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		nowRowStr := stringx.Trim(scanner.Text(), "\n")
@@ -53,13 +58,11 @@ func (e *CommonConfigParser) save() (int, error) {
 	)
 	mapLen := len(e.buffer)
 	if e.buffer == nil || mapLen <= 0 {
-		log.Fatal("buffer is nil")
-		return mapLen, err
+		FatalPrintln("buffer is nil")
 	} else {
 		fp, err = os.OpenFile(e.filePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 		if fp == nil {
-			log.Fatal("open file failed.")
-			return mapLen, err
+			FatalPrintln("open file failed.")
 		}
 		for k, v := range e.buffer {
 			rowStr := fmt.Sprintf("%s=%s\n", k, v)
@@ -75,13 +78,15 @@ func (e *CommonConfigParser) GetValue(key string) (string, error) {
 		err error
 	)
 	if e.buffer == nil {
-		log.Fatal(errors.New("buffer is nil"))
+		err = errors.New("buffer is nil")
+		FatalPrintln(err.Error())
 	} else {
 		if _, ok := e.buffer[key]; ok {
 			ret = e.buffer[key]
 		} else {
 			ret = ""
-			log.Fatal(errors.New("nokey"))
+			err = errors.New("nokey")
+			FatalPrintln(err.Error())
 		}
 	}
 	return ret, err
@@ -122,22 +127,26 @@ func NewSectionConfigParser(filename string) *SectionConfigParser {
 
 func (e *SectionConfigParser) GetString(section string, key string) string {
 	if e.confParser == nil {
-		log.Fatal("confParser is nil")
+		FatalPrintln("confParser is nil")
+		return ""
 	}
 	s := e.confParser.Section(section)
 	if s == nil {
-		log.Fatal("get section failed.")
+		FatalPrintln("get section failed.")
+		return ""
 	}
 	return s.Key(key).String()
 }
 
 func (e *SectionConfigParser) GetInt32(section string, key string) int32 {
 	if e.confParser == nil {
-		log.Fatal("confParser is nil")
+		FatalPrintln("confParser is nil")
+		return -9999
 	}
 	s := e.confParser.Section(section)
 	if s == nil {
-		log.Fatal("get section failed.")
+		FatalPrintln("get section failed.")
+		return -9999
 	}
 	valueInt, _ := s.Key(key).Int()
 	return int32(valueInt)
@@ -145,11 +154,13 @@ func (e *SectionConfigParser) GetInt32(section string, key string) int32 {
 
 func (e *SectionConfigParser) GetUint32(section string, key string) uint32 {
 	if e.confParser == nil {
-		log.Fatal("confParser is nil")
+		FatalPrintln("confParser is nil")
+		return 9999
 	}
 	s := e.confParser.Section(section)
 	if s == nil {
-		log.Fatal("get section failed.")
+		FatalPrintln("get section failed.")
+		return 9999
 	}
 	valueInt, _ := s.Key(key).Uint()
 	return uint32(valueInt)

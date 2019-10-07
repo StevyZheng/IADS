@@ -36,5 +36,5 @@ func FileDownload(c *gin.Context) {
 	}
 	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileinfo.Filename))
 	c.Writer.Header().Add("Content-Type", "application/octet-stream")
-	c.File(config.ConfValue.DownloadPath + fileinfo.Filename)
+	c.File(path.Join(config.ConfValue.DownloadPath, fileinfo.Filename))
 }

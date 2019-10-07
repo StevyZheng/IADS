@@ -3,7 +3,9 @@ package common
 import (
 	"bytes"
 	"github.com/mholt/archiver"
+	"iads/lib/logging"
 	"os/exec"
+	"strings"
 )
 
 func ExecShellLinux(cmd string) (string, error) {
@@ -11,7 +13,7 @@ func ExecShellLinux(cmd string) (string, error) {
 	var out bytes.Buffer
 	ret.Stdout = &out
 	err := ret.Run()
-	return out.String(), err
+	return strings.Trim(out.String(), "\n"), err
 }
 
 func ExecShellWin(cmd string) (string, error) {
@@ -20,6 +22,12 @@ func ExecShellWin(cmd string) (string, error) {
 	ret.Stdout = &out
 	err := ret.Run()
 	return out.String(), err
+}
+
+func CheckError(err error) {
+	if err != nil {
+		logging.FatalPrintln(err.Error())
+	}
 }
 
 func ZipFiles(fileArr []string, tgzName string) error {
@@ -43,10 +51,4 @@ func ZipPath(path string, zipName string) error {
 func UnZip(zipName string, pathName string) error {
 	err := archiver.Unarchive(zipName, pathName)
 	return err
-}
-
-func CheckErr(err error) {
-	if err != nil {
-		println(err)
-	}
 }

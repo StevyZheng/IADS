@@ -25,6 +25,12 @@ func ContainStr(src string, dist string) bool {
 	}
 }
 
+func MatchStr(srcStr string, regStr string) bool {
+	regStr1 := fmt.Sprintf("(?m:%s)", regStr)
+	ok, _ := regexp.MatchString(regStr1, srcStr)
+	return ok
+}
+
 func SearchString(srcStr string, regStr string) []string {
 	regStr1 := fmt.Sprintf("(?m:%s)", regStr)
 	re := regexp.MustCompile(regStr1)

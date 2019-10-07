@@ -3,11 +3,11 @@ package cmd
 import (
 	//"github.com/jedib0t/go-pretty/table"
 	"github.com/spf13/cobra"
-	"iads/lib/linux/hardware"
+	"iads/lib/logging"
 )
 
 func init() {
-	rootCmd.AddCommand(testCmd)
+	RootCmd.AddCommand(testCmd)
 	testCmd.AddCommand(commonCmd)
 	testCmd.AddCommand(runCmd)
 }
@@ -18,11 +18,11 @@ var testCmd = &cobra.Command{
 }
 
 var commonCmd = &cobra.Command{
-	Use:   "initer",
+	Use:   "logging",
 	Short: "test",
 	Run: func(cmd *cobra.Command, args []string) {
-		d := hardware.DmiInfo{}
-		d.Run()
+		logging.FatalPrintln("ooooopppp")
+		println("mimimimi")
 	},
 }
 
@@ -30,7 +30,9 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "run roycom initer server test",
 	Run: func(cmd *cobra.Command, args []string) {
-		n := hardware.NetInfo{}
-		_ = n.NetInit()
+		//n := hardware.NetInfo{}
+		//_ = n.NetInit()
+
+		//_ = common.DatasetCreate()
 	},
 }

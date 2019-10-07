@@ -26,7 +26,7 @@ func init() {
 	ConfValue.DBType = "pgsql"
 	ConfValue.OSType = "windows"
 	ConfValue.UploadPath = "/home/user/upload"
-	ConfValue.DownloadPath = "/home/user/upload/"
+	ConfValue.DownloadPath = "/home/user/upload"
 }
 
 func JsonRequest(c *gin.Context, code int64, data interface{}, err error) {

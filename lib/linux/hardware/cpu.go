@@ -14,7 +14,7 @@ type CpuHwInfo struct {
 	Stepping  string
 }
 
-func (e *CpuHwInfo) GetCpuHwInfo() {
+func (e *CpuHwInfo) GetCpuHwInfo() (err error) {
 	//tmpStr, err := ExecShellLinux("cat /proc/cpuinfo")
 	tmp, err := ioutil.ReadFile("/proc/cpuinfo")
 	tmpStr := strings.Replace(string(tmp), "\n", "", 1)
@@ -29,4 +29,5 @@ func (e *CpuHwInfo) GetCpuHwInfo() {
 	coreCountTmp1 := stringx.SearchString(tmpStr, ".*processor.*")
 	coreCountTmp := stringx.UniqStringList(coreCountTmp1)
 	e.CoreCount = len(coreCountTmp)
+	return err
 }

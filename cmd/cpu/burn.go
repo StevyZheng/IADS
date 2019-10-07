@@ -1,17 +1,13 @@
-package cmd
+package cpu
 
 import (
 	"github.com/spf13/cobra"
 	"iads/lib/linux/hardware"
+	. "iads/lib/logging"
 	"iads/lib/math"
-	"log"
 	"runtime"
 	"sync"
 )
-
-func init() {
-	rootCmd.AddCommand(burnCmd)
-}
 
 func burnFunc(wg *sync.WaitGroup) {
 	math.Gaos()
@@ -23,9 +19,9 @@ var burnCmd = &cobra.Command{
 	Short: "burn cpu: 100%",
 	Run: func(cmd *cobra.Command, args []string) {
 		cpuInfo := hardware.CpuHwInfo{}
-		cpuInfo.GetCpuHwInfo()
+		_ = cpuInfo.GetCpuHwInfo()
 		if cpuInfo.CoreCount <= 0 {
-			log.Fatal("getCpuInfo error.")
+			FatalPrintln("getCpuInfo error.")
 			return
 		}
 		runtime.GOMAXPROCS(cpuInfo.CoreCount)
