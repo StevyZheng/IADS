@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	//"github.com/jedib0t/go-pretty/table"
 	"github.com/spf13/cobra"
+	"iads/lib/filesystem/zfs"
+	"iads/lib/linux/hardware"
 	"iads/lib/logging"
 )
 
@@ -32,7 +33,29 @@ var runCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		//n := hardware.NetInfo{}
 		//_ = n.NetInit()
-
 		//_ = common.DatasetCreate()
+		disks, err := hardware.Disk{}.DiskList()
+		if err != nil {
+			return
+		}
+
+		pool := zfs.Pool{}
+		pool.PoolName = "rpool"
+		pool.Level = "raidz"
+		pool.AddDiskList(disks)
+
+		err = pool.MakeParts()
+		if err != nil {
+			println("part:", err.Error())
+			return
+		}
+
+		//pool.Print()
+
+		err = pool.Create(true)
+		if err != nil {
+			println("create:", err.Error())
+			return
+		}
 	},
 }

@@ -3,16 +3,22 @@ package common
 import (
 	"bytes"
 	"github.com/mholt/archiver"
+	//"github.com/codeskyblue/go-sh"
+	"github.com/pkg/errors"
 	"iads/lib/logging"
 	"os/exec"
 	"strings"
 )
 
-func ExecShellLinux(cmd string) (string, error) {
+func ExecShellLinux(cmd string) (outStr string, err error) {
+	if cmd == "" {
+		err = errors.Wrap(err, "command is nil")
+		return
+	}
 	ret := exec.Command("/bin/bash", "-c", cmd)
 	var out bytes.Buffer
 	ret.Stdout = &out
-	err := ret.Run()
+	err = ret.Run()
 	return strings.Trim(out.String(), "\n"), err
 }
 

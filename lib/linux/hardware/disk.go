@@ -1,7 +1,9 @@
 package hardware
 
 import (
+	"fmt"
 	"github.com/jaypipes/ghw"
+	"github.com/pkg/errors"
 	"iads/lib/common"
 	"iads/lib/stringx"
 	"log"
@@ -17,6 +19,8 @@ type Disk struct {
 	Serial   string
 	Size     uint64
 	DevType  string
+
+	PartID string
 }
 
 func (d Disk) DiskList() (disks []Disk, err error) {
@@ -40,8 +44,43 @@ func (d Disk) DiskList() (disks []Disk, err error) {
 	return
 }
 
-func (d Disk) Partition() {
-	//disk, _ := diskfs.Open(fmt.Sprintf("/dev/%s", d.DevName))
+func (d *Disk) MakePartition() (err error) {
+	if d.DevName == "" {
+		err = errors.Wrap(err, "dev name is nil")
+		return
+	}
+	cmd := fmt.Sprintf("parted /dev/%s -s -- mklabel gpt mkpart primary 1 -1", d.DevName)
+	_, err = common.ExecShellLinux(cmd)
+	return
+}
+
+func (d *Disk) FillPartID() (err error) {
+	cmd := fmt.Sprintf("blkid -o value -s PARTUUID /dev/%s1", d.DevName)
+	ret, err := common.ExecShellLinux(cmd)
+	if err != nil {
+		return
+	}
+	d.PartID = ret
+	return
+}
+
+func (d Disk) PartProbe() (err error) {
+	_, err = common.ExecShellLinux("partprobe")
+	return
+}
+
+func (d Disk) Print() {
+	println(fmt.Sprintf("name: %s\nmodel: %s\nUUID: %s", d.DevName, d.Model, d.PartID))
+}
+
+func (d Disk) RemovePartition() (err error) {
+	if d.DevName == "" {
+		err = errors.Wrap(err, "dev name is nil")
+		return
+	}
+	cmd := fmt.Sprintf("parted /dev/%s -s -- rm 1", d.DevName)
+	_, err = common.ExecShellLinux(cmd)
+	return
 }
 
 func ParseMountL() (osDisk []string) {

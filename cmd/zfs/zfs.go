@@ -3,8 +3,8 @@ package zfs
 import "github.com/spf13/cobra"
 
 var ZfsCmd = &cobra.Command{
-	Use:   "zfs",
-	Short: "zfs operation",
+	Use:   "libzfs-tmp",
+	Short: "libzfs-tmp operation",
 }
 
 func init() {
