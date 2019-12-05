@@ -3,6 +3,8 @@ package hardware
 import (
 	"github.com/emirpasic/gods/lists/arraylist"
 	"github.com/vishvananda/netlink"
+	"log"
+	"regexp"
 )
 
 type NetInterface struct {
@@ -54,5 +56,15 @@ func (e NetInfo) Print() {
 	it := e.Interfaces.Iterator()
 	for it.Next() {
 		println(it.Value().(NetInterface).Gateway)
+	}
+}
+
+//*********************************
+func RegMac(mac string) bool {
+	if flag, err := regexp.MatchString("^[A-Za-f0-9]{2}(:[A-Za-f0-9]{2}){5}$", mac); err != nil {
+		log.Println(err.Error())
+		return false
+	} else {
+		return flag
 	}
 }

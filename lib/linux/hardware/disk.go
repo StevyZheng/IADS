@@ -11,6 +11,9 @@ import (
 	"regexp"
 )
 
+type DiskSmart struct {
+}
+
 type Disk struct {
 	DevName  string
 	Wwn      string
