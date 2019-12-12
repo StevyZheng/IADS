@@ -1,19 +1,10 @@
 package util
 
 import (
-	"iads/server/internals/app/routers"
-	"iads/server/internals/pkg/models/sys"
+	"iads/lib/linux/hardware"
 	"os"
 	"path/filepath"
 )
-
-func ServerRunFunc() {
-	println("iads api server is running...")
-	//defer database.DBE.Close()
-	sys.ModelInit()
-	router := routers.InitRouter()
-	_ = router.Run(":80")
-}
 
 func RebootFunc() (err error) {
 	fileName := "/etc/rc.d/rc.local"
@@ -26,4 +17,8 @@ func RebootFunc() (err error) {
 	_, err = fd.WriteString(buf)
 	fd.Close()
 	return err
+}
+
+func SmcOobActiveFunc(bmcMac string) (code string, err error) {
+	return hardware.OutActivationCode(bmcMac)
 }

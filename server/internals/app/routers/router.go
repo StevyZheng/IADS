@@ -32,11 +32,11 @@ func InitRouter() *gin.Engine {
 	apiUser := apiV1.Group("/user")
 	initer.UserRouterInit(apiUser)
 
-	//apiFile := apiV1.Group("file")
-	//routers.FileRouterInit(apiFile)
-
-	apiFile := apiV1.Group("file")
+	apiFile := apiV1.Group("/file")
 	initer.FileRouterInit(apiFile)
+
+	apiBmc := apiV1.Group("/bmc")
+	initer.OobRouterInit(apiBmc)
 
 	return router
 }

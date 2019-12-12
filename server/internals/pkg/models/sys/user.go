@@ -7,7 +7,7 @@ import (
 
 type User struct {
 	basemodel.OrmModel
-	UserName string `json:"user_name" gorm:"type:varchar(64);unique_index" `
+	Username string `json:"username" gorm:"type:varchar(64);unique_index" `
 	Password string `json:"password" gorm:"type:varchar(256)"`
 	Email    string `json:"email" gorm:"type:varchar(128)"`
 	Role     Role   `json:"role" gorm:"auto_preload;foreignkey:RoleID"`
@@ -15,7 +15,7 @@ type User struct {
 }
 
 func (u *User) UserGetFromName() (user User, err error) {
-	if err = database.DBE.Where("user_name = ?", u.UserName).First(&user).Error; err != nil {
+	if err = database.DBE.Where("username = ?", u.Username).First(&user).Error; err != nil {
 		return
 	}
 	user.Role.ID = user.RoleID
@@ -67,7 +67,7 @@ func (u *User) UserInsert() (id uint64, err error) {
 
 //修改
 func (u *User) UserUpdate(id uint64) (updateUser User, err error) {
-	if err = database.DBE.Select([]string{"id", "user_name"}).First(&updateUser, id).Error; err != nil {
+	if err = database.DBE.Select([]string{"id", "username"}).First(&updateUser, id).Error; err != nil {
 		return
 	}
 	//参数1:是要修改的数据
@@ -91,7 +91,7 @@ func (u *User) UserDestroyFromID(id uint64) (Result User, err error) {
 }
 
 func (u *User) UserDestroyFromName(userName string) (Result User, err error) {
-	if err = database.DBE.Where("user_name = ?", userName).First(&u).Error; err != nil {
+	if err = database.DBE.Where("username = ?", userName).First(&u).Error; err != nil {
 		return
 	}
 	if err = database.DBE.Delete(&u).Error; err != nil {

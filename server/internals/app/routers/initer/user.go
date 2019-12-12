@@ -10,9 +10,9 @@ func UserRouterInit(userRouterGroup *gin.RouterGroup) {
 	userRouterGroup.Use(middleware.JWTAuth())
 	{
 		userRouterGroup.GET("/list", v1.UserList)
-		userRouterGroup.GET("/get/:user_name", v1.UserGetFromName)
+		userRouterGroup.GET("/get/:username", v1.UserGetFromName)
 		userRouterGroup.POST("/add", v1.UserCreate)
 		userRouterGroup.POST("/del", v1.UserDestroyFromUserName)
-		userRouterGroup.POST("/del/:user_name", v1.UserDestroy)
+		userRouterGroup.POST("/del/:username", v1.UserDestroy)
 	}
 }

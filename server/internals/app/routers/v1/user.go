@@ -14,7 +14,7 @@ import (
 )
 
 type LoginInfo struct {
-	UserName string `json:"user_name"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
@@ -25,10 +25,10 @@ type LoginResult struct {
 
 func LoginCheck(info LoginInfo) (flag bool, u sys.User, err error) {
 	var user sys.User
-	if len(info.UserName) == 0 || len(info.Password) == 0 {
+	if len(info.Username) == 0 || len(info.Password) == 0 {
 		return false, user, nil
 	}
-	err = database.DBE.Where("user_name = ?", info.UserName).Preload("Role").First(&user).Error
+	err = database.DBE.Where("username = ?", info.Username).Preload("Role").First(&user).Error
 	if err != nil {
 		return false, user, err
 	}
@@ -62,7 +62,7 @@ func generateToken(c *gin.Context, user sys.User) {
 	}
 	claims := jwt.CustomClaims{
 		UserID:   user.ID,
-		UserName: user.UserName,
+		UserName: user.Username,
 		Email:    user.Email,
 		RoleID:   user.RoleID,
 		StandardClaims: jwtgo.StandardClaims{
@@ -110,8 +110,8 @@ func GetDataByTime(c *gin.Context) {
 
 func UserGetFromName(c *gin.Context) {
 	var user sys.User
-	userName := c.Param("user_name")
-	user.UserName = userName
+	userName := c.Param("username")
+	user.Username = userName
 	role, err := user.UserGetFromName()
 	if err != nil {
 		config.JsonRequest(c, -1, nil, err)
@@ -132,7 +132,7 @@ func UserList(c *gin.Context) {
 }
 
 type UserStoreInfo struct {
-	UserName string `json:"user_name"`
+	UserName string `json:"username"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
 	RoleName string `json:"role_name"`
@@ -144,7 +144,7 @@ func UserCreate(c *gin.Context) {
 	err := c.ShouldBindJSON(&userInfo)
 	var user sys.User
 	user.Role.RoleName = userInfo.RoleName
-	user.UserName = userInfo.UserName
+	user.Username = userInfo.UserName
 	user.Password = userInfo.Password
 	user.Email = userInfo.Email
 	id, err := user.UserInsert()
@@ -178,7 +178,7 @@ func UserUpdate(c *gin.Context) {
 func UserDestroyFromUserName(c *gin.Context) {
 	var user sys.User
 	err := c.ShouldBindJSON(&user)
-	result, err := user.UserDestroyFromName(user.UserName)
+	result, err := user.UserDestroyFromName(user.Username)
 	if err != nil || result.ID == 0 {
 		config.JsonRequest(c, -1, nil, err)
 		return
@@ -188,8 +188,8 @@ func UserDestroyFromUserName(c *gin.Context) {
 
 func UserDestroy(c *gin.Context) {
 	var user sys.User
-	user.UserName = c.Param("user_name")
-	result, err := user.UserDestroyFromName(user.UserName)
+	user.Username = c.Param("username")
+	result, err := user.UserDestroyFromName(user.Username)
 	if err != nil || result.ID == 0 {
 		config.JsonRequest(c, -1, nil, err)
 		return

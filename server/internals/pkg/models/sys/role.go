@@ -5,6 +5,11 @@ import (
 	"iads/server/internals/pkg/models/database"
 )
 
+/*
+admin
+tenant
+ordinary
+*/
 type Role struct {
 	basemodel.OrmModel
 	RoleName    string `json:"role_name" gorm:"type:varchar(32);unique_index;"`
