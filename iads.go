@@ -12,6 +12,7 @@ func main() {
 		FatalPrintln(err.Error())
 		return
 	}
+
 	if me != nil && me.Name != "root" {
 		FatalPrintln("error: Current user must be root. Please run as root or add sudo!\nerror_code: -1")
 		return
