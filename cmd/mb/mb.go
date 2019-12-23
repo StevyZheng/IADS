@@ -8,5 +8,7 @@ var MbCmd = &cobra.Command{
 }
 
 func init() {
+	getOobCmd.Flags().String("bmcMac", "", "BMC mac address.")
 	MbCmd.AddCommand(getMbInfoCmd)
+	MbCmd.AddCommand(getOobCmd)
 }

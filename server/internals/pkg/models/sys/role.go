@@ -5,7 +5,7 @@ import (
 	"iads/server/internals/pkg/models/database"
 )
 
-/*
+/*.
 admin
 tenant
 ordinary
