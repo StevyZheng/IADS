@@ -10,10 +10,6 @@ import (
 	"os"
 )
 
-func VersionPrint() {
-	fmt.Println(version)
-}
-
 func CpuInfoPrint() {
 	cpuInfo := new(hardware.CpuHwInfo)
 	common.CheckError(cpuInfo.GetCpuHwInfo())
