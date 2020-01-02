@@ -70,6 +70,7 @@ func (o *MongoUtils) CountDoc(col string) (size int64, err error) {
 	if size, err = table.CountDocuments(ctx, bson.D{}); err != nil {
 		return 0, err
 	}
+	return size, err
 }
 
 func (o *MongoUtils) FindOne(col string, filter bson.M) (bson.M, error) {
