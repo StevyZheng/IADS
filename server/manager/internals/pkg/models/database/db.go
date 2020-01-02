@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	_ "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"net/url"
-	"runtime/debug"
+	_ "runtime/debug"
 	"time"
 )
 
@@ -52,6 +52,26 @@ func (o *MongoUtils) SetDb(db string) {
 	o.Db = o.Con.Database(db)
 }
 
+func Bson2Odj(val interface{}, obj interface{}) (err error) {
+	data, err := bson.Marshal(val)
+	if err != nil {
+		return err
+	}
+	_ = bson.Unmarshal(data, obj)
+	return nil
+}
+
+func (o *MongoUtils) CountDoc(col string) (size int64, err error) {
+	if o.Db == nil || o.Con == nil {
+		return 0, fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	if size, err = table.CountDocuments(ctx, bson.D{}); err != nil {
+		return 0, err
+	}
+}
+
 func (o *MongoUtils) FindOne(col string, filter bson.M) (bson.M, error) {
 	if o.Db == nil || o.Con == nil {
 		return nil, fmt.Errorf("Not init connect and database!")
@@ -66,14 +86,58 @@ func (o *MongoUtils) FindOne(col string, filter bson.M) (bson.M, error) {
 	return result, nil
 }
 
-func (o *MongoUtils) FindMore(col string, filter bson.M) ([]bson.M, error) {
+func (o *MongoUtils) FindOneDelete(col string, filter bson.M) (bson.M, error) {
+	if o.Db == nil || o.Con == nil {
+		return nil, fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	var result bson.M
+	err := table.FindOneAndDelete(ctx, filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+//查询单条数据后修改该数据
+func (o *MongoUtils) FindOneUpdate(col string, filter bson.M, update bson.M) (bson.M, error) {
+	if o.Db == nil || o.Con == nil {
+		return nil, fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	var result bson.M
+	err := table.FindOneAndUpdate(ctx, filter, update).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+//查询单条数据后替换该数据(以前的数据全部清空)
+func (o *MongoUtils) FindOneReplace(col string, filter bson.M, replace bson.M) (bson.M, error) {
+	if o.Db == nil || o.Con == nil {
+		return nil, fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	var result bson.M
+	err := table.FindOneAndUpdate(ctx, filter, replace).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (o *MongoUtils) FindMore(col string, filter bson.M, opts ...*options.FindOptions) ([]bson.M, error) {
 	if o.Db == nil || o.Con == nil {
 		return nil, fmt.Errorf("Not init connect and database!")
 	}
 	table := o.Db.Collection(col)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	//ctx, _ = context.WithTimeout(context.Background(), 5*time.Second)
-	cur, err2 := table.Find(ctx, filter)
+	cur, err2 := table.Find(ctx, filter, opts...)
 	if err2 != nil {
 		fmt.Print(err2)
 		return nil, err2
@@ -91,29 +155,60 @@ func (o *MongoUtils) FindMore(col string, filter bson.M) ([]bson.M, error) {
 	return resultArr, nil
 }
 
-func Bson2Odj(val interface{}, obj interface{}) (err error) {
-	data, err := bson.Marshal(val)
-	if err != nil {
-		return err
-	}
-	_ = bson.Unmarshal(data, obj)
-	return nil
-}
-
 func (o *MongoUtils) InsertOne(col string, elem interface{}) (err error) {
-	cols := o.Db.Collection(col)
+	table := o.Db.Collection(col)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	if _, err := cols.InsertOne(ctx, elem); err != nil && cid != nil {
+	if _, err := table.InsertOne(ctx, elem); err != nil {
 		return err
 	}
 	return err
 }
 
 func (o *MongoUtils) InsertMany(col string, elemArray []interface{}) (err error) {
-	cols := o.Db.Collection(col)
+	table := o.Db.Collection(col)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	if _, err := cols.InsertMany(ctx, elemArray); err != nil {
+	if _, err := table.InsertMany(ctx, elemArray); err != nil {
 		return err
 	}
+	return err
+}
+
+func (o *MongoUtils) UpdateOne(col string, filter bson.M, update bson.M) (err error) {
+	if o.Db == nil || o.Con == nil {
+		return fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	_, err = table.UpdateOne(ctx, filter, update)
+	return err
+}
+
+func (o *MongoUtils) UpdateMany(col string, filter bson.M, update bson.M) (err error) {
+	if o.Db == nil || o.Con == nil {
+		return fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	_, err = table.UpdateMany(ctx, filter, update)
+	return err
+}
+
+func (o *MongoUtils) DeleteOne(col string, filter bson.M) (err error) {
+	if o.Db == nil || o.Con == nil {
+		return fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	_, err = table.DeleteOne(ctx, filter)
+	return err
+}
+
+func (o *MongoUtils) DeleteMany(col string, filter bson.M) (err error) {
+	if o.Db == nil || o.Con == nil {
+		return fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	_, err = table.DeleteMany(ctx, filter)
 	return err
 }
