@@ -7,9 +7,14 @@ type VersionText struct {
 
 var versionVar = []VersionText{
 	{
+		"1.0.3",
+		`version:1.0.3
+1. Add system log analysis function.`,
+	},
+	{
 		"1.0.2",
 		`version: 1.0.2
-1. Add Zstack reboot text.
+1. Add Zstack reboot test.
 2. Optimized the server rest API functionality.
 3. Add smc oob active function.`,
 	},

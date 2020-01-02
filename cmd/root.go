@@ -9,7 +9,7 @@ import (
 var RootCmd = &cobra.Command{
 	Use:   "iads",
 	Short: "Roycom tools.",
-	Long:  "Roycom tools.\nHa Ha Ha,I'm coming!",
+	Long:  "Roycom tools. Use for all department.",
 }
 
 func Execute() {

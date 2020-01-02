@@ -1,108 +1,119 @@
 package database
 
 import (
-	"github.com/globalsign/mgo"
-	"log"
+	"context"
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"net/url"
+	"runtime/debug"
 	"time"
 )
 
-var (
-	Session *mgo.Session
-)
+type MongoUtils struct {
+	Con      *mongo.Client
+	Db       *mongo.Database
+	ServerIp string
+	Port     int
+}
 
-const (
-	host   = "127.0.0.1"
-	source = "manager"
-	user   = "admin"
-	pass   = "000000"
-)
-
-func init() {
-	dialInfo := &mgo.DialInfo{
-		Addrs:     []string{host},
-		Direct:    false,
-		Timeout:   time.Second * 1,
-		Source:    source,
-		Username:  user,
-		Password:  pass,
-		PoolLimit: 1024,
-	}
-	s, err := mgo.DialWithInfo(dialInfo)
+func (o *MongoUtils) OpenConn() (con *mongo.Client) {
+	connString := fmt.Sprintf("mongodb://%s:%d", o.ServerIp, o.Port)
+	_, err := url.Parse(connString)
 	if err != nil {
-		log.Fatalf("Can't connect to mongo, go error %s\n", err)
+		println(err)
+		return
 	}
-	Session = s
-}
-
-func connect(db, collation string) (*mgo.Session, *mgo.Collection) {
-	s := Session.Copy()
-	c := s.DB(db).C(collation)
-	s.SetMode(mgo.Monotonic, true)
-	return s, c
-}
-
-func Insert(db, collection string, docs ...interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Insert(docs)
-}
-
-func IsExist(db, collection string, query interface{}) bool {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	count, _ := c.Find(query).Count()
-	return count > 0
-}
-
-func IsEmpty(db, collection string) bool {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	count, err := c.Count()
+	opts := options.Client().ApplyURI(connString)
+	opts.SetAuth(options.Credential{AuthMechanism: "SCRAM-SHA-1", AuthSource: "AuthDb", Username: "admin", Password: "000000"})
+	opts.SetMaxPoolSize(64)
+	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
+	con, err = mongo.Connect(ctx, opts)
 	if err != nil {
-		log.Fatal(err)
+		println(err)
+		return nil
 	}
-	return count == 0
+	err = con.Ping(ctx, readpref.Primary())
+	if err != nil {
+		println(err)
+		return nil
+	}
+	o.Con = con
+	return con
 }
 
-func Count(db, collection string, query interface{}) (int, error) {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Find(query).Count()
+func (o *MongoUtils) SetDb(db string) {
+	if o.Con == nil {
+		panic("Connect  is nil...")
+	}
+	o.Db = o.Con.Database(db)
 }
 
-func FindOne(db, collection string, query, selector, result interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Find(query).Select(selector).One(result)
+func (o *MongoUtils) FindOne(col string, filter bson.M) (bson.M, error) {
+	if o.Db == nil || o.Con == nil {
+		return nil, fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	var result bson.M
+	err := table.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
-func FindAll(db, collection string, query, selector, result interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Find(query).Select(selector).All(result)
+func (o *MongoUtils) FindMore(col string, filter bson.M) ([]bson.M, error) {
+	if o.Db == nil || o.Con == nil {
+		return nil, fmt.Errorf("Not init connect and database!")
+	}
+	table := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	//ctx, _ = context.WithTimeout(context.Background(), 5*time.Second)
+	cur, err2 := table.Find(ctx, filter)
+	if err2 != nil {
+		fmt.Print(err2)
+		return nil, err2
+	}
+	defer cur.Close(ctx)
+	var resultArr []bson.M
+	for cur.Next(ctx) {
+		var result bson.M
+		err3 := cur.Decode(&result)
+		if err3 != nil {
+			return nil, err3
+		}
+		resultArr = append(resultArr, result)
+	}
+	return resultArr, nil
 }
 
-func FindPage(db, collection string, page, limit int, query, selector, result interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Find(query).Select(selector).Skip(page * limit).Limit(limit).All(result)
+func Bson2Odj(val interface{}, obj interface{}) (err error) {
+	data, err := bson.Marshal(val)
+	if err != nil {
+		return err
+	}
+	_ = bson.Unmarshal(data, obj)
+	return nil
 }
 
-func Update(db, collection string, query, update interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Update(query, update)
+func (o *MongoUtils) InsertOne(col string, elem interface{}) (err error) {
+	cols := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	if _, err := cols.InsertOne(ctx, elem); err != nil && cid != nil {
+		return err
+	}
+	return err
 }
 
-func Remove(db, collection string, query interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	return c.Remove(query)
-}
-
-func RemoveAll(db, collection string, query interface{}) error {
-	ms, c := connect(db, collection)
-	defer ms.Close()
-	_, err := c.RemoveAll(query)
+func (o *MongoUtils) InsertMany(col string, elemArray []interface{}) (err error) {
+	cols := o.Db.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	if _, err := cols.InsertMany(ctx, elemArray); err != nil {
+		return err
+	}
 	return err
 }
