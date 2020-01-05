@@ -40,8 +40,10 @@ require (
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	go.mongodb.org/mongo-driver v1.0.3
 	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
 	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
+	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/ini.v1 v1.46.0
 	upper.io/db.v3 v3.6.3+incompatible // indirect
 )

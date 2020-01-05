@@ -1,5 +1,7 @@
 package sys
 
 type Role struct {
-	RoleName string `json:"role_name" bson:"role_name"`
+	BaseModel
+	Name    string `json:"name" bson:"name,omitempty"`
+	Explain string `json:"explain" bson:"explain,omitempty"`
 }
