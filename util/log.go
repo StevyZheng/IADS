@@ -104,3 +104,6 @@ func MessagesErrorJson() (string, error) {
 	}
 	return string(b), err
 }
+
+type BmcLogType struct {
+}

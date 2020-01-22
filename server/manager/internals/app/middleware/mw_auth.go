@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	jwt2 "iads/server/iads/pkg/jwt"
+	jwt2 "iads/server/manager/pkg/jwt"
 	"log"
 	"net/http"
 )

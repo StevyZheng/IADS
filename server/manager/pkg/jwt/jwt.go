@@ -3,6 +3,7 @@ package jwt
 import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
@@ -22,10 +23,9 @@ var (
 
 // 载荷，可以加一些自己需要的信息
 type CustomClaims struct {
-	UserID   uint64 `json:"user_id"`
-	UserName string `json:"user_name"`
-	Email    string `json:"email"`
-	RoleID   uint64 `json:"role_id"`
+	UserID   primitive.ObjectID `json:"userID"`
+	Username string             `json:"username"`
+	RoleName string             `json:"roleName"`
 	jwt.StandardClaims
 }
 

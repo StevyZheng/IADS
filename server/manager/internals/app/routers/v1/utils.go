@@ -6,9 +6,18 @@ import (
 )
 
 func JsonResult(c *gin.Context, code int, err error, data interface{}) {
-	c.JSON(http.StatusOK, gin.H{
-		"code":  code,
-		"error": err,
-		"data":  data,
-	})
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code":  code,
+			"error": err.Error(),
+			"data":  data,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"code":  code,
+			"error": nil,
+			"data":  data,
+		})
+	}
+
 }

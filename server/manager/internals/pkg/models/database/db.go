@@ -60,21 +60,17 @@ func BsonToOdj(val interface{}, obj interface{}) (err error) {
 	if err != nil {
 		return err
 	}
-	_ = bson.Unmarshal(data, obj)
+	_ = bson.Unmarshal(data, &obj)
 	return nil
 }
 
-func ObjToBson(obj interface{}) (b bson.M, err error) {
+func ObjToBson(obj interface{}) (doc *bson.M, err error) {
 	data, err := bson.Marshal(&obj)
 	if err != nil {
 		return nil, err
 	}
-	b = bson.M{}
-	err = bson.Unmarshal(data, b)
-	if err != nil {
-		return nil, err
-	}
-	return b, err
+	err = bson.Unmarshal(data, &doc)
+	return doc, err
 }
 
 func (o *MDatabase) CountDoc(col string) (size int64, err error) {
@@ -89,13 +85,27 @@ func (o *MDatabase) CountDoc(col string) (size int64, err error) {
 	return size, err
 }
 
-func (o *MDatabase) FindOne(col string, filter bson.M) (bson.M, error) {
+func (o *MDatabase) FindOneBsonM(col string, filter bson.M) (bson.M, error) {
 	if o.DB == nil || o.Client == nil {
 		return nil, errors.New("not init connect and database")
 	}
 	table := o.DB.Collection(col)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	var result bson.M
+	err := table.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (o *MDatabase) FindOneStruct(col string, filter bson.M) (interface{}, error) {
+	if o.DB == nil || o.Client == nil {
+		return nil, errors.New("not init connect and database")
+	}
+	table := o.DB.Collection(col)
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	var result interface{}
 	err := table.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
 		return nil, err
@@ -153,7 +163,6 @@ func (o *MDatabase) FindMore(col string, filter bson.M, opts ...*options.FindOpt
 	}
 	table := o.DB.Collection(col)
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	//ctx, _ = context.WithTimeout(context.Background(), 5*time.Second)
 	cur, err2 := table.Find(ctx, filter, opts...)
 	if err2 != nil {
 		fmt.Print(err2)
