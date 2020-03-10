@@ -3,7 +3,6 @@ package net
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
 	"net"
 	"time"
 )
@@ -19,7 +18,7 @@ type ICMP struct {
 var icmp ICMP
 
 //timeout like "4s"
-func IsPing(ip string, timeout string) bool {
+func IsPing(ip string, timeout string) (bool, error) {
 	//开始填充数据包
 	icmp.Type = 8 //8->echo message  0->reply message
 	icmp.Code = 0
@@ -38,25 +37,25 @@ func IsPing(ip string, timeout string) bool {
 	Time, _ := time.ParseDuration(timeout)
 	conn, err := net.DialTimeout("ip4:icmp", ip, Time)
 	if err != nil {
-		return false
+		return false, err
 	}
 	_, err = conn.Write(buffer.Bytes())
 	if err != nil {
-		log.Println("conn.Write error:", err)
-		return false
+		//log.Println("conn.Write error:", err)
+		return false, err
 	}
 	_ = conn.SetReadDeadline(time.Now().Add(time.Second * 2))
 	num, err := conn.Read(recvBuf)
 	if err != nil {
-		log.Println("conn.Read error:", err)
-		return false
+		//log.Println("conn.Read error:", err)
+		return false, err
 	}
 
 	_ = conn.SetReadDeadline(time.Time{})
 	if string(recvBuf[0:num]) != "" {
-		return true
+		return true, nil
 	}
-	return false
+	return false, err
 }
 
 func CheckSum(data []byte) uint16 {

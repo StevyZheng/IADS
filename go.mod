@@ -34,7 +34,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/tealeg/xlsx v1.0.5
-	github.com/upper/db v3.6.3+incompatible
+	github.com/upper/db v3.6.3+incompatible // indirect
 	github.com/vishvananda/netlink v1.0.0
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect

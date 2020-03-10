@@ -13,6 +13,7 @@ var RebootCmd = &cobra.Command{
 	Use:   "reboot",
 	Short: "reboot test in linux, for ZStack now.",
 	Run: func(cmd *cobra.Command, args []string) {
+		println("Run reboot test.")
 		if err := util.RebootFunc(); err != nil {
 			println(err.Error())
 			return

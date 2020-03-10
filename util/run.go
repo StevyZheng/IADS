@@ -6,23 +6,39 @@ import (
 	"iads/lib/file"
 	"iads/lib/linux/hardware"
 	"iads/lib/net"
+	"strconv"
 	"time"
 )
 
 type NodeIp struct {
-	Bmc string
-	Ip  string
+	Bmc      string
+	Ip       string
+	User     string
+	Password string
+	Count    int
 }
 
 func rebootSubFunc(node NodeIp) {
+	for {
+		flag, err := net.IsPing(node.Bmc, "2s")
+		if !flag {
+			println("ping bmc ip locked: " + err.Error())
+			time.Sleep(5 * time.Second)
+		} else {
+			break
+		}
+	}
 	bmcCmd := fmt.Sprintf("ipmitool -H %s -I lanplus -U ADMIN -P ADMIN power reset", node.Bmc)
 	for {
-		flag := net.IsPing(node.Ip, "2s")
+		flag, err := net.IsPing(node.Ip, "2s")
+		if err != nil {
+		}
 		if flag {
 			_, _ = common.ExecShellLinux(bmcCmd)
-		} else {
-			time.Sleep(4 * time.Second)
+			node.Count++
+			println(node.Bmc + " power reset. times:" + strconv.Itoa(node.Count))
 		}
+		time.Sleep(8 * time.Second)
 	}
 }
 
@@ -33,11 +49,12 @@ func RebootFunc() (err error) {
 		return
 	}
 	lines, err := file.ReadFileAsLine("iplist.txt")
-	if err == nil {
+	if err != nil {
 		return
 	}
 	var nodes []NodeIp
 	var node NodeIp
+	node.Count = 0
 	for index, value := range lines {
 		if index%2 == 0 {
 			node.Bmc = value
@@ -50,7 +67,7 @@ func RebootFunc() (err error) {
 		go rebootSubFunc(value)
 	}
 	for {
-		time.Sleep(3600 * time.Second)
+		time.Sleep(1000 * time.Hour)
 	}
 	//return err
 }
